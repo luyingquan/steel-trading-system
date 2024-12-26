@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>仓库管理 - 钢铁点价交易系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 搜索栏样式 */
+        .search-bar {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .form-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+        }
+
+        .action-column {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-view {
+            background-color: #52c41a;
+            color: #fff;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+
+        .pagination button {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .pagination button.active {
+            background: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+
+        .pagination button:hover:not(.active) {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .pagination button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .pagination button:disabled:hover {
+            border-color: #d9d9d9;
+            color: inherit;
+        }
+
+        .pagination .page-info {
+            color: #666;
+        }
+
+        /* 仓库特有的样式 */
+        .warehouse-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .status-active {
+            background-color: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+        }
+
+        .status-inactive {
+            background-color: #fff1f0;
+            color: #ff4d4f;
+            border: 1px solid #ffa39e;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 40px 20px;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            margin: 20px auto;
+            padding: 0;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            color: #1f1f1f;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .close-button {
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+            margin: -8px;
+        }
+
+        .close-button:hover {
+            background-color: #f5f5f5;
+            color: #444;
+        }
+
+        /* 表单样式美化 */
+        .edit-form {
+            padding: 24px;
+        }
+
+        .edit-form .form-row {
+            margin-bottom: 24px;
+            display: flex;
+            gap: 24px;
+        }
+
+        .edit-form .form-item {
+            position: relative;
+            flex: 1;
+        }
+
+        .edit-form .form-item label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .edit-form .form-item input,
+        .edit-form .form-item select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-size: 14px;
+            background: #fff;
+        }
+
+        .edit-form .form-item input:focus,
+        .edit-form .form-item select:focus {
+            border-color: #40a9ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+            outline: none;
+        }
+
+        .edit-form .form-item input::placeholder {
+            color: #bfbfbf;
+        }
+
+        .edit-form .form-actions {
+            margin: 0 -24px -24px;
+            padding: 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: center;
+            background: #fafafa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .edit-form .form-actions button {
+            min-width: 100px;
+            height: 40px;
+            font-size: 14px;
+            padding: 0 24px;
+        }
+
+        .edit-form .form-actions button + button {
+            margin-left: 16px;
+        }
+
+        /* 禁用状态样式 */
+        .edit-form .form-item input:disabled,
+        .edit-form .form-item select:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+            color: #666;
+        }
+
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .data-table th {
+            background: #fafafa;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #fafafa;
+            transition: background-color 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 复用左侧导航 -->
+        <div class="sidebar">
+            <div class="logo">
+                <h2>钢铁点价交易系统</h2>
+            </div>
+            <nav class="nav-menu">
+                <div class="menu-group">
+                    <h3>基础后台</h3>
+                    <ul>
+                        <li><a href="listing-manage.html">挂牌管理</a></li>
+                        <li><a href="warehouse-manage.html">仓库管理</a></li>
+                        <li><a href="contract-manage.html">合同管理</a></li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <h3>客户模块</h3>
+                    <ul>
+                        <li><a href="price-trade.html">点价交易</a></li>
+                        <li><a href="trade-record.html">摘牌记录</a></li>
+                        <li><a href="my-contract.html">我的合同</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+
+        <div class="main-content">
+            <header class="top-header">
+                <div class="user-info">
+                    <span>欢迎，管理员</span>
+                    <a href="#" class="logout">退出</a>
+                </div>
+            </header>
+            <div class="content-wrapper">
+                <!-- 搜索栏 -->
+                <div class="search-bar">
+                    <form class="search-form" onsubmit="handleSearch(event)">
+                        <div class="form-group">
+                            <label>仓库编号：</label>
+                            <input type="text" id="searchNumber" placeholder="请输入仓库编号">
+                        </div>
+                        <div class="form-group">
+                            <label>仓库名称：</label>
+                            <input type="text" id="searchName" placeholder="请输入仓库名称">
+                        </div>
+                        <div class="form-group">
+                            <label>状态：</label>
+                            <select id="searchStatus">
+                                <option value="">全部</option>
+                                <option value="启用">启用</option>
+                                <option value="停用">停用</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">搜索</button>
+                        <button type="button" class="btn" onclick="resetSearch()">重置</button>
+                    </form>
+                </div>
+
+                <!-- 表格区域 -->
+                <div class="table-section">
+                    <div class="table-header">
+                        <h2>仓库列表</h2>
+                        <button class="btn btn-primary" onclick="openModal()">新增仓库</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>仓库编号</th>
+                                <th>仓库名称</th>
+                                <th>所在地区</th>
+                                <th>仓储容量(吨)</th>
+                                <th>当前库存(吨)</th>
+                                <th>加价(元/吨)</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <script>
+                                // 生成10条测试数据
+                                const steelMills = [
+                                    { name: '宝钢股份', area: '上海' },
+                                    { name: '首钢集团', area: '北京' },
+                                    { name: '鞍钢集团', area: '辽宁' },
+                                    { name: '河钢集团', area: '河北' },
+                                    { name: '沙钢集团', area: '江苏' },
+                                    { name: '武钢集团', area: '湖北' },
+                                    { name: '马钢集团', area: '安徽' },
+                                    { name: '太钢集团', area: '山西' }
+                                ];
+                                const statuses = ['启用', '停用'];
+                                
+                                for(let i = 1; i <= 10; i++) {
+                                    const num = i.toString().padStart(3, '0');
+                                    const capacity = 10000 + Math.floor(Math.random() * 90000);
+                                    const stock = Math.floor(Math.random() * capacity);
+                                    const price = Math.floor(Math.random() * 100) + 50;
+                                    const mill = steelMills[Math.floor(Math.random() * steelMills.length)];
+                                    const status = statuses[Math.floor(Math.random() * statuses.length)];
+                                    
+                                    document.write(`
+                                        <tr>
+                                            <td>WH20240301${num}</td>
+                                            <td>${mill.name}${num}号仓库</td>
+                                            <td>${mill.area}</td>
+                                            <td>${capacity}</td>
+                                            <td>${stock}</td>
+                                            <td>${price}</td>
+                                            <td>
+                                                <span class="warehouse-status ${status === '启用' ? 'status-active' : 'status-inactive'}">
+                                                    ${status}
+                                                </span>
+                                            </td>
+                                            <td>2024-03-01</td>
+                                            <td class="action-column">
+                                                <button class="btn btn-primary" onclick="openEditModal('WH20240301${num}')">编辑</button>
+                                                <button class="btn btn-view" onclick="openViewModal('WH20240301${num}')">查看</button>
+                                                <button class="btn btn-danger" onclick="handleDelete('WH20240301${num}', this)">删除</button>
+                                            </td>
+                                        </tr>
+                                    `);
+                                }
+                            </script>
+                        </tbody>
+                    </table>
+                    <!-- 分页控件 -->
+                    <div class="pagination" id="pagination">
+                        <button onclick="changePage(1)">首页</button>
+                        <button onclick="changePage(currentPage-1)">&lt;</button>
+                        <!-- 页码按钮将通过 JavaScript 动态生成 -->
+                        <button onclick="changePage(currentPage+1)">&gt;</button>
+                        <button onclick="changePage(totalPages)">末页</button>
+                        <span class="page-info">共 10 条记录，每页 10 条</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/编辑仓库弹窗 -->
+    <div id="warehouseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">新增仓库</h2>
+                <span class="close-button" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="warehouseForm" onsubmit="handleSubmit(event)" class="edit-form">
+                <div class="form-row">
+                    <div class="form-item">
+                        <label>仓库名称</label>
+                        <input type="text" name="name" required placeholder="请输入仓库名称">
+                    </div>
+                    <div class="form-item">
+                        <label>所在地区</label>
+                        <select name="area" required>
+                            <option value="">请选择</option>
+                            <option value="上海">上海</option>
+                            <option value="北京">北京</option>
+                            <option value="辽宁">辽宁</option>
+                            <option value="河北">河北</option>
+                            <option value="江苏">江苏</option>
+                            <option value="湖北">湖北</option>
+                            <option value="安徽">安徽</option>
+                            <option value="山西">山西</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-item">
+                        <label>仓储容量(吨)</label>
+                        <input type="number" name="capacity" required placeholder="请输入仓储容量">
+                    </div>
+                    <div class="form-item">
+                        <label>加价(元/吨)</label>
+                        <input type="number" name="price" required placeholder="请输入加价">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-item">
+                        <label>状态</label>
+                        <select name="status" required>
+                            <option value="启用">启用</option>
+                            <option value="停用">停用</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <button type="button" class="btn" onclick="closeModal()">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 分页相关代码
+        let currentPage = 1;
+        const totalPages = 1; // 10条数据，每页10条
+        const itemsPerPage = 10;
+
+        // 页面加载时初始化
+        window.onload = function() {
+            generatePageButtons();
+            showPage(1);
+        }
+
+        // 生成页码按钮
+        function generatePageButtons() {
+            const paginationDiv = document.getElementById('pagination');
+            const nextButton = paginationDiv.querySelector('button:nth-last-child(2)');
+            
+            for(let i = 1; i <= totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.setAttribute('data-page', i);
+                pageButton.onclick = () => changePage(i);
+                if(i === 1) pageButton.classList.add('active');
+                
+                paginationDiv.insertBefore(pageButton, nextButton);
+            }
+        }
+
+        // 显示指定页的数据
+        function showPage(page) {
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+
+            const rows = document.querySelectorAll('.data-table tbody tr');
+            rows.forEach((row, index) => {
+                if (index >= (page-1) * itemsPerPage && index < page * itemsPerPage) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            updatePaginationButtons(page);
+            currentPage = page;
+        }
+
+        // 更新分页按钮状态
+        function updatePaginationButtons(page) {
+            document.querySelectorAll('.pagination button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const currentButton = document.querySelector(`.pagination button[data-page="${page}"]`);
+            if (currentButton) {
+                currentButton.classList.add('active');
+            }
+            
+            const firstPageBtn = document.querySelector('.pagination button:first-child');
+            const prevPageBtn = document.querySelector('.pagination button:nth-child(2)');
+            const nextPageBtn = document.querySelector('.pagination button:nth-last-child(2)');
+            const lastPageBtn = document.querySelector('.pagination button:last-child');
+            
+            firstPageBtn.disabled = page === 1;
+            prevPageBtn.disabled = page === 1;
+            nextPageBtn.disabled = page === totalPages;
+            lastPageBtn.disabled = page === totalPages;
+        }
+
+        function changePage(page) {
+            showPage(page);
+        }
+
+        // 搜索功能
+        function handleSearch(event) {
+            event.preventDefault();
+            
+            const number = document.getElementById('searchNumber').value.trim().toLowerCase();
+            const name = document.getElementById('searchName').value.trim().toLowerCase();
+            const status = document.getElementById('searchStatus').value;
+            
+            const rows = document.querySelectorAll('.data-table tbody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const rowNumber = row.cells[0].textContent.toLowerCase();
+                const rowName = row.cells[1].textContent.toLowerCase();
+                const rowStatus = row.cells[6].querySelector('.warehouse-status').textContent.trim();
+                
+                const matchNumber = !number || rowNumber.includes(number);
+                const matchName = !name || rowName.includes(name);
+                const matchStatus = !status || rowStatus === status;
+                
+                if (matchNumber && matchName && matchStatus) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // 更新分页信息
+            document.querySelector('.page-info').textContent = 
+                `共 ${visibleCount} 条记录，每页 10 条`;
+        }
+
+        function resetSearch() {
+            document.getElementById('searchNumber').value = '';
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchStatus').value = '';
+            
+            const rows = document.querySelectorAll('.data-table tbody tr');
+            rows.forEach(row => row.style.display = '');
+            showPage(1);
+            
+            document.querySelector('.page-info').textContent = '共 10 条记录，每页 10 条';
+        }
+
+        // 弹窗相关函数
+        function openModal() {
+            document.getElementById('modalTitle').textContent = '新增仓库';
+            document.getElementById('warehouseForm').reset();
+            document.getElementById('warehouseModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('warehouseModal').style.display = 'none';
+        }
+
+        // 仓库特有的函数
+        function openEditModal(id) {
+            document.getElementById('modalTitle').textContent = '编辑仓库';
+            document.getElementById('warehouseModal').style.display = 'block';
+            // 模拟加载数据
+            const form = document.getElementById('warehouseForm');
+            form.querySelector('[name="name"]').value = id + '号仓库';
+            form.querySelector('[name="area"]').value = '上海';
+            form.querySelector('[name="capacity"]').value = '50000';
+            form.querySelector('[name="price"]').value = '100';
+            form.querySelector('[name="status"]').value = '启用';
+        }
+
+        function openViewModal(id) {
+            document.getElementById('modalTitle').textContent = '查看仓库';
+            document.getElementById('warehouseModal').style.display = 'block';
+            // 模拟加载数据
+            const form = document.getElementById('warehouseForm');
+            form.querySelector('[name="name"]').value = id + '号仓库';
+            form.querySelector('[name="area"]').value = '上海';
+            form.querySelector('[name="capacity"]').value = '50000';
+            form.querySelector('[name="price"]').value = '100';
+            form.querySelector('[name="status"]').value = '启用';
+            // 设置表单只读
+            Array.from(form.elements).forEach(element => {
+                element.disabled = true;
+            });
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            console.log('提交的数据：', Object.fromEntries(formData));
+            alert('保存成功！');
+            closeModal();
+            location.reload();
+        }
+
+        // 删除功能
+        function handleDelete(id, btn) {
+            if (confirm('确定要删除该仓库吗？')) {
+                const row = btn.closest('tr');
+                row.remove();
+                alert('删除成功！');
+            }
+        }
+
+        // 点击弹窗外部关闭弹窗
+        window.onclick = function(event) {
+            const modal = document.getElementById('warehouseModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html> 

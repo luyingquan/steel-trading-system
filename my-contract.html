@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的合同 - 钢铁点价交易系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 搜索栏样式 */
+        .search-bar {
+            background: #fff;
+            padding: 24px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-form {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 280px;
+        }
+
+        .form-group label {
+            color: #666;
+            font-size: 14px;
+            white-space: nowrap;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .form-group input,
+        .form-group select {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+            width: 200px;
+        }
+
+        .form-group input:hover,
+        .form-group select:hover {
+            border-color: #40a9ff;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #40a9ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+            outline: none;
+        }
+
+        .form-group input::placeholder {
+            color: #bfbfbf;
+        }
+
+        /* 表格样式 */
+        .table-section {
+            background: #fff;
+            padding: 24px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .data-table th {
+            background: #fafafa;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .data-table tr:hover {
+            background-color: #fafafa;
+        }
+
+        /* 合同状态样式 */
+        .contract-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .status-pending {
+            background-color: #fff7e6;
+            color: #fa8c16;
+            border: 1px solid #ffd591;
+        }
+
+        .status-active {
+            background-color: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+        }
+
+        .status-completed {
+            background-color: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+
+        .status-cancelled {
+            background-color: #fff1f0;
+            color: #ff4d4f;
+            border: 1px solid #ffa39e;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 6px 16px;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #1890ff;
+            border-color: #1890ff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #40a9ff;
+            border-color: #40a9ff;
+        }
+
+        .btn-view {
+            background: #52c41a;
+            border-color: #52c41a;
+            color: #fff;
+        }
+
+        .btn-view:hover {
+            background: #73d13d;
+            border-color: #73d13d;
+        }
+
+        .btn-download {
+            background: #722ed1;
+            border-color: #722ed1;
+            color: #fff;
+        }
+
+        .btn-download:hover {
+            background: #9254de;
+            border-color: #9254de;
+        }
+
+        .action-column {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+
+        .pagination button {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .pagination button.active {
+            background: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+
+        .pagination button:hover:not(.active) {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .pagination button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .pagination .page-info {
+            color: #666;
+        }
+
+        .amount {
+            font-family: monospace;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧导航 -->
+        <div class="sidebar">
+            <div class="logo">
+                <h2>钢铁点价交易系统</h2>
+            </div>
+            <nav class="nav-menu">
+                <div class="menu-group">
+                    <h3>基础后台</h3>
+                    <ul>
+                        <li><a href="listing-manage.html">挂牌管理</a></li>
+                        <li><a href="warehouse-manage.html">仓库管理</a></li>
+                        <li><a href="contract-manage.html">合同管理</a></li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <h3>客户模块</h3>
+                    <ul>
+                        <li><a href="price-trade.html">点价交易</a></li>
+                        <li><a href="trade-record.html">摘牌记录</a></li>
+                        <li><a href="my-contract.html" class="active">我的合同</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+
+        <div class="main-content">
+            <header class="top-header">
+                <div class="user-info">
+                    <span>欢迎，张三</span>
+                    <a href="#" class="logout">退出</a>
+                </div>
+            </header>
+            <div class="content-wrapper">
+                <!-- 搜索栏 -->
+                <div class="search-bar">
+                    <form class="search-form" onsubmit="handleSearch(event)">
+                        <div class="form-group">
+                            <label>合同编号：</label>
+                            <input type="text" id="searchNumber" placeholder="请输入合同编号" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label>商品类型：</label>
+                            <select id="searchType">
+                                <option value="">全部</option>
+                                <option value="热轧卷板">热轧卷板</option>
+                                <option value="冷轧卷板">冷轧卷板</option>
+                                <option value="镀锌板">镀锌板</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>状态：</label>
+                            <select id="searchStatus">
+                                <option value="">全部</option>
+                                <option value="待生效">待生效</option>
+                                <option value="执行中">执行中</option>
+                                <option value="已完成">已完成</option>
+                                <option value="已取消">已取消</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">搜索</button>
+                            <button type="button" class="btn" onclick="resetSearch()">重置</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 表格区域 -->
+                <div class="table-section">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>合同编号</th>
+                                <th>商品类型</th>
+                                <th>规格</th>
+                                <th>数量(吨)</th>
+                                <th>单价(元/吨)</th>
+                                <th>合同金额(元)</th>
+                                <th>签订日期</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <script>
+                                // 生成30条测试数据
+                                const products = ['热轧卷板', '冷轧卷板', '镀锌板'];
+                                const specs = ['2.0*1250*C', '3.0*1500*C', '1.5*1250*C'];
+                                const statuses = ['待生效', '执行中', '已完成', '已取消'];
+                                
+                                for(let i = 1; i <= 30; i++) {
+                                    const num = i.toString().padStart(3, '0');
+                                    const product = products[Math.floor(Math.random() * products.length)];
+                                    const spec = specs[Math.floor(Math.random() * specs.length)];
+                                    const quantity = Math.floor(Math.random() * 1000) + 100;
+                                    const price = Math.floor(Math.random() * 2000) + 3000;
+                                    const amount = quantity * price;
+                                    const status = statuses[Math.floor(Math.random() * statuses.length)];
+                                    
+                                    let statusClass = '';
+                                    switch(status) {
+                                        case '待生效': statusClass = 'status-pending'; break;
+                                        case '执行中': statusClass = 'status-active'; break;
+                                        case '已完成': statusClass = 'status-completed'; break;
+                                        case '已取消': statusClass = 'status-cancelled'; break;
+                                    }
+                                    
+                                    document.write(`
+                                        <tr>
+                                            <td>CT20240301${num}</td>
+                                            <td>${product}</td>
+                                            <td>${spec}</td>
+                                            <td class="amount">${quantity}</td>
+                                            <td class="amount">${price.toLocaleString()}</td>
+                                            <td class="amount">${amount.toLocaleString()}</td>
+                                            <td>2024-03-01</td>
+                                            <td><span class="contract-status ${statusClass}">${status}</span></td>
+                                            <td class="action-column">
+                                                <button class="btn btn-view" onclick="viewContract('CT20240301${num}')">查看</button>
+                                                <button class="btn btn-download" onclick="downloadContract('CT20240301${num}')">下载</button>
+                                            </td>
+                                        </tr>
+                                    `);
+                                }
+                            </script>
+                        </tbody>
+                    </table>
+                    <!-- 分页控件 -->
+                    <div class="pagination" id="pagination">
+                        <button onclick="changePage(1)">首页</button>
+                        <button onclick="changePage(currentPage-1)">&lt;</button>
+                        <!-- 页码按钮将通过 JavaScript 动态生成 -->
+                        <button onclick="changePage(currentPage+1)">&gt;</button>
+                        <button onclick="changePage(totalPages)">末页</button>
+                        <span class="page-info">共 30 条记录，每页 10 条</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 分页相关代码
+        let currentPage = 1;
+        const totalPages = 3; // 30条数据，每页10条
+        const itemsPerPage = 10;
+
+        // 页面加载时初始化
+        window.onload = function() {
+            generatePageButtons();
+            showPage(1);
+        }
+
+        // 生成页码按钮
+        function generatePageButtons() {
+            const paginationDiv = document.getElementById('pagination');
+            const nextButton = paginationDiv.querySelector('button:nth-last-child(2)');
+            
+            for(let i = 1; i <= totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.setAttribute('data-page', i);
+                pageButton.onclick = () => changePage(i);
+                if(i === 1) pageButton.classList.add('active');
+                
+                paginationDiv.insertBefore(pageButton, nextButton);
+            }
+        }
+
+        // 显示指定页的数据
+        function showPage(page) {
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+
+            const rows = document.querySelectorAll('.data-table tbody tr');
+            rows.forEach((row, index) => {
+                if (index >= (page-1) * itemsPerPage && index < page * itemsPerPage) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            updatePaginationButtons(page);
+            currentPage = page;
+        }
+
+        // 更新分页按钮状态
+        function updatePaginationButtons(page) {
+            document.querySelectorAll('.pagination button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const currentButton = document.querySelector(`.pagination button[data-page="${page}"]`);
+            if (currentButton) {
+                currentButton.classList.add('active');
+            }
+            
+            const firstPageBtn = document.querySelector('.pagination button:first-child');
+            const prevPageBtn = document.querySelector('.pagination button:nth-child(2)');
+            const nextPageBtn = document.querySelector('.pagination button:nth-last-child(2)');
+            const lastPageBtn = document.querySelector('.pagination button:last-child');
+            
+            firstPageBtn.disabled = page === 1;
+            prevPageBtn.disabled = page === 1;
+            nextPageBtn.disabled = page === totalPages;
+            lastPageBtn.disabled = page === totalPages;
+        }
+
+        function changePage(page) {
+            showPage(page);
+        }
+
+        // 搜索功能
+        function handleSearch(event) {
+            event.preventDefault();
+            
+            const number = document.getElementById('searchNumber').value.trim().toLowerCase();
+            const type = document.getElementById('searchType').value;
+            const status = document.getElementById('searchStatus').value;
+            
+            const rows = document.querySelectorAll('.data-table tbody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const rowNumber = row.cells[0].textContent.toLowerCase();
+                const rowType = row.cells[1].textContent;
+                const rowStatus = row.cells[7].querySelector('.contract-status').textContent;
+                
+                const matchNumber = !number || rowNumber.includes(number);
+                const matchType = !type || rowType === type;
+                const matchStatus = !status || rowStatus === status;
+                
+                if (matchNumber && matchType && matchStatus) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            document.querySelector('.page-info').textContent = 
+                `共 ${visibleCount} 条记录，每页 10 条`;
+        }
+
+        function resetSearch() {
+            document.getElementById('searchNumber').value = '';
+            document.getElementById('searchType').value = '';
+            document.getElementById('searchStatus').value = '';
+            
+            const rows = document.querySelectorAll('.data-table tbody tr');
+            rows.forEach(row => row.style.display = '');
+            showPage(1);
+            
+            document.querySelector('.page-info').textContent = '共 30 条记录，每页 10 条';
+        }
+
+        // 合同操作
+        function viewContract(id) {
+            alert(`查看合同：${id}`);
+            // 这里可以添加查看合同详情的逻辑
+        }
+
+        function downloadContract(id) {
+            alert(`下载合同：${id}`);
+            // 这里可以添加下载合同的逻辑
+        }
+    </script>
+</body>
+</html> 

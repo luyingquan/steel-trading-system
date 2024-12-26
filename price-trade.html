@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点价交易 - 钢铁点价交易系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 搜索栏样式 */
+        .search-bar {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group label {
+            color: #666;
+            font-size: 14px;
+            white-space: nowrap;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        /* 表格样式 */
+        .table-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .data-table th {
+            background: #fafafa;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .data-table tr:hover {
+            background-color: #fafafa;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 6px 16px;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .btn-primary {
+            background: #1890ff;
+            border-color: #1890ff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #40a9ff;
+            border-color: #40a9ff;
+        }
+
+        /* 状态标签样式 */
+        .status-tag {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .status-available {
+            background-color: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+
+        .status-trading {
+            background-color: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+        }
+
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+
+        .pagination button {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .pagination button.active {
+            background: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+
+        /* 点价弹窗样式优化 */
+        .form-section {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .form-section h3 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .form-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-row label {
+            width: 100px;
+            text-align: right;
+            margin-right: 12px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-row input,
+        .form-row select {
+            flex: 1;
+            height: 32px;
+            padding: 4px 11px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .form-row input:hover,
+        .form-row select:hover {
+            border-color: #40a9ff;
+        }
+
+        .form-row input:focus,
+        .form-row select:focus {
+            border-color: #40a9ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+            outline: none;
+        }
+
+        .form-row input[readonly] {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+            color: #666;
+        }
+
+        .form-row .unit {
+            margin-left: 8px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            margin: 40px auto;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            padding: 16px 24px;
+            background: #fafafa;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 16px;
+            color: #1f1f1f;
+            font-weight: 500;
+        }
+
+        .close-button {
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+            color: #999;
+            transition: all 0.3s;
+        }
+
+        .close-button:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            background: #fafafa;
+            text-align: right;
+            border-radius: 0 0 4px 4px;
+        }
+
+        .modal-footer .btn + .btn {
+            margin-left: 8px;
+        }
+
+        /* 记录表格样式优化 */
+        .record-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0;
+        }
+
+        .record-table th,
+        .record-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .record-table th {
+            background: #fafafa;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .record-table .amount {
+            font-family: monospace;
+            text-align: right;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .record-table tr:hover {
+            background-color: #fafafa;
+        }
+
+        /* 状态标签样式 */
+        .status-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 2px;
+            font-size: 12px;
+        }
+
+        /* 记录状态样式 */
+        .status-pending {
+            background-color: #fff7e6;
+            color: #fa8c16;
+            border: 1px solid #ffd591;
+        }
+        
+        .status-success {
+            background-color: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+        
+        .status-expired {
+            background-color: #f5f5f5;
+            color: #666;
+            border: 1px solid #d9d9d9;
+        }
+        
+        .status-cancelled {
+            background-color: #fff1f0;
+            color: #ff4d4f;
+            border: 1px solid #ffa39e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <h2>钢铁点价交易系统</h2>
+            </div>
+            <nav class="nav-menu">
+                <div class="menu-group">
+                    <h3>基础后台</h3>
+                    <ul>
+                        <li><a href="listing-manage.html">挂牌管理</a></li>
+                        <li><a href="warehouse-manage.html">仓库管理</a></li>
+                        <li><a href="contract-manage.html">合同管理</a></li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <h3>客户模块</h3>
+                    <ul>
+                        <li><a href="price-trade.html" class="active">点价交易</a></li>
+                        <li><a href="trade-record.html">摘牌记录</a></li>
+                        <li><a href="my-contract.html">我的合同</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+
+        <div class="main-content">
+            <header class="top-header">
+                <div class="user-info">
+                    <span>欢迎，张三</span>
+                    <a href="#" class="logout">退出</a>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- 搜索栏 -->
+                <div class="search-bar">
+                    <form class="search-form" onsubmit="handleSearch(event)">
+                        <div class="form-group">
+                            <label>挂牌编号：</label>
+                            <input type="text" id="searchNumber" placeholder="请输入挂牌编号">
+                        </div>
+                        <div class="form-group">
+                            <label>商品类型：</label>
+                            <select id="searchType">
+                                <option value="">全部</option>
+                                <option value="热轧卷板">热轧卷板</option>
+                                <option value="冷轧卷板">冷轧卷板</option>
+                                <option value="镀锌卷板">镀锌卷板</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>状态：</label>
+                            <select id="searchStatus">
+                                <option value="">全部</option>
+                                <option value="可交易">可交易</option>
+                                <option value="交易中">交易中</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">搜索</button>
+                        <button type="button" class="btn" onclick="resetSearch()">重置</button>
+                    </form>
+                </div>
+
+                <!-- 表格区域 -->
+                <div class="table-section">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>挂牌编号</th>
+                                <th>商品类型</th>
+                                <th>规格型号</th>
+                                <th>数量(吨)</th>
+                                <th>基准价(元/吨)</th>
+                                <th>点价区间</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                            <!-- 数据将在这里生成 -->
+                        </tbody>
+                    </table>
+
+                    <!-- 分页控件 -->
+                    <div class="pagination" id="pagination">
+                        <button onclick="changePage(1)">首页</button>
+                        <button onclick="changePage(currentPage-1)">&lt;</button>
+                        <!-- 页码按钮将通过JavaScript动态生成 -->
+                        <button onclick="changePage(currentPage+1)">&gt;</button>
+                        <button onclick="changePage(totalPages)">末页</button>
+                        <span class="page-info">共 20 条记录，每页 10 条</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 点价弹窗 -->
+    <div id="priceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>我要点价</h2>
+                <span class="close-button" onclick="closePriceModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="priceForm" class="price-form" onsubmit="handlePriceSubmit(event)">
+                    <!-- 挂牌信息 -->
+                    <div class="form-section">
+                        <h3>挂牌信息</h3>
+                        <div class="form-row">
+                            <label>挂牌编号：</label>
+                            <input type="text" id="listingNumber" readonly>
+                        </div>
+                        <div class="form-row">
+                            <label>商品类型：</label>
+                            <input type="text" id="productType" readonly>
+                        </div>
+                        <div class="form-row">
+                            <label>规格型号：</label>
+                            <input type="text" id="specification" readonly>
+                        </div>
+                        <div class="form-row">
+                            <label>可用数量：</label>
+                            <input type="text" id="availableQuantity" readonly>
+                            <span class="unit">吨</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 价格信息 -->
+                    <div class="form-section">
+                        <h3>价格信息</h3>
+                        <div class="form-row">
+                            <label>基准价：</label>
+                            <input type="text" id="basePrice" readonly>
+                            <span class="unit">元/吨</span>
+                        </div>
+                        <div class="form-row">
+                            <label>点价区间：</label>
+                            <input type="text" id="priceRange" readonly>
+                        </div>
+                        <div class="form-row">
+                            <label>点价金额：</label>
+                            <input type="number" id="priceAmount" required>
+                            <span class="unit">元/吨</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 交易信息 -->
+                    <div class="form-section">
+                        <h3>交易信息</h3>
+                        <div class="form-row">
+                            <label>交易数量：</label>
+                            <input type="number" id="tradeQuantity" required min="1">
+                            <span class="unit">吨</span>
+                        </div>
+                        <div class="form-row">
+                            <label>选择仓库：</label>
+                            <select id="warehouse" required>
+                                <option value="">请选择仓库</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label>总金额：</label>
+                            <input type="text" id="totalAmount" readonly>
+                            <span class="unit">元</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="handlePriceSubmit(event)">确认点价</button>
+                <button class="btn" onclick="closePriceModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 点价记录弹窗 -->
+    <div id="recordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>点价记录</h2>
+                <span class="close-button" onclick="closeRecordModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <table class="record-table">
+                    <thead>
+                        <tr>
+                            <th>点价时间</th>
+                            <th>点价吨位</th>
+                            <th>点价金额(元/吨)</th>
+                            <th>点价用户</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordTableBody">
+                        <!-- 记录将通过JavaScript动态添加 -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeRecordModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后初始化数据
+        window.onload = function() {
+            generateData();
+            generatePageButtons();
+            showPage(1);
+        }
+
+        // 生成测试数据
+        function generateData() {
+            const tbody = document.getElementById('dataTableBody');
+            const products = ['热轧卷板', '冷轧卷板', '镀锌卷板'];
+            const specs = ['1.0*1250*C', '2.0*1250*C', '3.0*1250*C'];
+            const statuses = ['可交易', '交易中'];
+            
+            let html = '';
+            for(let i = 1; i <= 20; i++) {
+                const num = i.toString().padStart(3, '0');
+                const product = products[Math.floor(Math.random() * products.length)];
+                const spec = specs[Math.floor(Math.random() * specs.length)];
+                const quantity = Math.floor(Math.random() * 1000) + 1000;
+                const basePrice = Math.floor(Math.random() * 2000) + 3000;
+                const priceRange = '±200';
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const statusClass = status === '可交易' ? 'status-available' : 'status-trading';
+                
+                html += `
+                    <tr>
+                        <td>GP20240301${num}</td>
+                        <td>${product}</td>
+                        <td>${spec}</td>
+                        <td>${quantity}</td>
+                        <td>${basePrice.toLocaleString()}</td>
+                        <td>${priceRange}</td>
+                        <td><span class="status-tag ${statusClass}">${status}</span></td>
+                        <td>
+                            <button class="btn btn-primary" onclick="openPriceModal('GP20240301${num}', ${basePrice}, '${priceRange}')" ${status === '交易中' ? 'disabled' : ''}>我要点价</button>
+                            <button class="btn" onclick="openRecordModal('GP20240301${num}')">查看记录</button>
+                        </td>
+                    </tr>
+                `;
+            }
+            tbody.innerHTML = html;
+        }
+
+        // 分页相关代码
+        let currentPage = 1;
+        const totalPages = 2; // 20条数据，每页10条
+        const itemsPerPage = 10;
+
+        // 生成页码按钮
+        function generatePageButtons() {
+            const paginationDiv = document.getElementById('pagination');
+            const nextButton = paginationDiv.querySelector('button:nth-last-child(2)');
+            
+            for(let i = 1; i <= totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.setAttribute('data-page', i);
+                pageButton.onclick = () => changePage(i);
+                if(i === 1) pageButton.classList.add('active');
+                
+                paginationDiv.insertBefore(pageButton, nextButton);
+            }
+        }
+
+        // 显示指定页的数据
+        function showPage(page) {
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+
+            const rows = document.querySelectorAll('.data-table tbody tr');
+            rows.forEach((row, index) => {
+                if (index >= (page-1) * itemsPerPage && index < page * itemsPerPage) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            updatePaginationButtons(page);
+            currentPage = page;
+        }
+
+        // 更新分页按钮状态
+        function updatePaginationButtons(page) {
+            document.querySelectorAll('.pagination button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const currentButton = document.querySelector(`.pagination button[data-page="${page}"]`);
+            if (currentButton) {
+                currentButton.classList.add('active');
+            }
+            
+            const firstPageBtn = document.querySelector('.pagination button:first-child');
+            const prevPageBtn = document.querySelector('.pagination button:nth-child(2)');
+            const nextPageBtn = document.querySelector('.pagination button:nth-last-child(2)');
+            const lastPageBtn = document.querySelector('.pagination button:last-child');
+            
+            firstPageBtn.disabled = page === 1;
+            prevPageBtn.disabled = page === 1;
+            nextPageBtn.disabled = page === totalPages;
+            lastPageBtn.disabled = page === totalPages;
+        }
+
+        function changePage(page) {
+            showPage(page);
+        }
+
+        // 点价相关函数
+        function openPriceModal(listingNumber, basePrice, priceRange) {
+            // 获取当前行的数据
+            const row = event.target.closest('tr');
+            const productType = row.cells[1].textContent;
+            const spec = row.cells[2].textContent;
+            const quantity = row.cells[3].textContent;
+
+            // 填充表单数据
+            document.getElementById('listingNumber').value = listingNumber;
+            document.getElementById('productType').value = productType;
+            document.getElementById('specification').value = spec;
+            document.getElementById('availableQuantity').value = quantity;
+            document.getElementById('basePrice').value = basePrice.toLocaleString();
+            document.getElementById('priceRange').value = priceRange;
+            
+            // 加载仓库选项
+            loadWarehouses(productType);
+            
+            document.getElementById('priceModal').style.display = 'block';
+
+            // 添加数量和价格变化监听器
+            document.getElementById('tradeQuantity').addEventListener('input', updateTotalAmount);
+            document.getElementById('priceAmount').addEventListener('input', updateTotalAmount);
+        }
+
+        function loadWarehouses(productType) {
+            // 模拟加载仓库数据
+            const warehouses = [
+                { id: 1, name: '上海仓库A', available: true },
+                { id: 2, name: '上海仓库B', available: true },
+                { id: 3, name: '北京仓库A', available: true },
+                { id: 4, name: '��州仓库A', available: true }
+            ];
+
+            const warehouseSelect = document.getElementById('warehouse');
+            warehouseSelect.innerHTML = '<option value="">请选择仓库</option>';
+            
+            warehouses.forEach(warehouse => {
+                if (warehouse.available) {
+                    const option = document.createElement('option');
+                    option.value = warehouse.id;
+                    option.textContent = warehouse.name;
+                    warehouseSelect.appendChild(option);
+                }
+            });
+        }
+
+        function updateTotalAmount() {
+            const quantity = parseFloat(document.getElementById('tradeQuantity').value) || 0;
+            const price = parseFloat(document.getElementById('priceAmount').value) || 0;
+            const totalAmount = quantity * price;
+            
+            document.getElementById('totalAmount').value = 
+                totalAmount ? totalAmount.toLocaleString() : '';
+        }
+
+        function handlePriceSubmit(event) {
+            event.preventDefault();
+            
+            // 获取表单数据
+            const formData = {
+                listingNumber: document.getElementById('listingNumber').value,
+                productType: document.getElementById('productType').value,
+                specification: document.getElementById('specification').value,
+                quantity: document.getElementById('tradeQuantity').value,
+                price: document.getElementById('priceAmount').value,
+                warehouse: document.getElementById('warehouse').value,
+                totalAmount: document.getElementById('totalAmount').value
+            };
+
+            // 验证数据
+            if (!formData.quantity || !formData.price || !formData.warehouse) {
+                alert('请填写完整信息');
+                return;
+            }
+
+            // 验证数量
+            const availableQuantity = parseFloat(document.getElementById('availableQuantity').value);
+            if (formData.quantity > availableQuantity) {
+                alert('交易数量不能超过可用数量');
+                return;
+            }
+
+            // 验证价格区间
+            const basePrice = parseFloat(document.getElementById('basePrice').value.replace(/,/g, ''));
+            const priceRange = parseFloat(document.getElementById('priceRange').value.replace('±', ''));
+            const price = parseFloat(formData.price);
+
+            if (price < basePrice - priceRange || price > basePrice + priceRange) {
+                alert('点价金额超出允许范围');
+                return;
+            }
+
+            console.log('提交的数据：', formData);
+            alert('点价成功！');
+            closePriceModal();
+        }
+
+        function closePriceModal() {
+            document.getElementById('priceModal').style.display = 'none';
+            document.getElementById('priceForm').reset();
+        }
+
+        // 记录相关函数
+        function openRecordModal(listingNumber) {
+            const records = generateUserRecords(listingNumber);
+            const tbody = document.getElementById('recordTableBody');
+            tbody.innerHTML = records;
+            document.getElementById('recordModal').style.display = 'block';
+        }
+
+        function closeRecordModal() {
+            document.getElementById('recordModal').style.display = 'none';
+        }
+
+        function generateUserRecords(listingNumber) {
+            let html = '';
+            const currentUser = '张三';
+            const statuses = ['待确认', '已过期', '已撤销', '已成交'];
+            
+            const recordCount = (parseInt(listingNumber.slice(-3)) % 3) + 1;
+            
+            for(let i = 0; i < recordCount; i++) {
+                const time = `2024-03-01 ${14-i}:${(i*7).toString().padStart(2, '0')}`;
+                const quantity = Math.floor(Math.random() * 500) + 500; // 生成500-1000吨的随机数
+                const amount = Math.floor(Math.random() * 2000) + 3000;
+                const status = statuses[i % statuses.length];
+                
+                // 添加状态样式类
+                let statusClass = '';
+                switch(status) {
+                    case '待确认': statusClass = 'status-pending'; break;
+                    case '已成交': statusClass = 'status-success'; break;
+                    case '已过期': statusClass = 'status-expired'; break;
+                    case '已撤销': statusClass = 'status-cancelled'; break;
+                }
+                
+                html += `
+                    <tr>
+                        <td>${time}</td>
+                        <td class="amount">${quantity}</td>
+                        <td class="amount">${amount.toLocaleString()}</td>
+                        <td>${currentUser}</td>
+                        <td><span class="status-tag ${statusClass}">${status}</span></td>
+                    </tr>
+                `;
+            }
+            
+            return html;
+        }
+
+        // 搜索相关函数
+        function handleSearch(event) {
+            event.preventDefault();
+            // ... 搜索逻辑 ...
+        }
+
+        function resetSearch() {
+            // ... 重置逻辑 ...
+        }
+    </script>
+</body>
+</html> 

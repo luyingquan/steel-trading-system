@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>钢铁点价交易系统</title>
+    <style>
+        /* 重置样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+        }
+
+        /* 布局样式 */
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 200px;
+            background: #001529;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .logo h2 {
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .nav-menu {
+            color: #fff;
+        }
+
+        .menu-group {
+            margin-bottom: 20px;
+        }
+
+        .menu-group h3 {
+            padding: 10px 20px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.45);
+            font-weight: normal;
+        }
+
+        .menu-group ul {
+            list-style: none;
+        }
+
+        .menu-group li a {
+            display: block;
+            padding: 10px 20px;
+            color: rgba(255, 255, 255, 0.65);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .menu-group li a:hover,
+        .menu-group li a.active {
+            color: #fff;
+            background: #1890ff;
+        }
+
+        /* 主内容区域样式 */
+        .main-content {
+            flex: 1;
+            margin-left: 200px;
+            padding: 20px;
+        }
+
+        .top-header {
+            background: #fff;
+            padding: 15px 20px;
+            margin: -20px -20px 20px;
+            box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info span {
+            color: #666;
+        }
+
+        .logout {
+            color: #666;
+            text-decoration: none;
+        }
+
+        .logout:hover {
+            color: #1890ff;
+        }
+
+        /* 通用样式 */
+        .content-wrapper {
+            padding: 20px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <h2>钢铁点价交易系统</h2>
+            </div>
+            <nav class="nav-menu">
+                <div class="menu-group">
+                    <h3>基础后台</h3>
+                    <ul>
+                        <li><a href="listing-manage.html">挂牌管理</a></li>
+                        <li><a href="warehouse-manage.html">仓库管理</a></li>
+                        <li><a href="contract-manage.html">合同管理</a></li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <h3>客户模块</h3>
+                    <ul>
+                        <li><a href="price-trade.html">点价交易</a></li>
+                        <li><a href="trade-record.html">摘牌记录</a></li>
+                        <li><a href="my-contract.html">我的合同</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+
+        <div class="main-content">
+            <header class="top-header">
+                <div class="user-info">
+                    <span>欢迎，张三</span>
+                    <a href="#" class="logout">退出</a>
+                </div>
+            </header>
+            <div class="content-wrapper">
+                <!-- 页面具体内容将在这里插入 -->
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

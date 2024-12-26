@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>挂牌管理 - 钢铁点价交易系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .search-bar {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .form-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+        }
+
+        .action-column {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-view {
+            background-color: #52c41a;
+            color: #fff;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+
+        .pagination button {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .pagination button.active {
+            background: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+
+        .pagination button:hover:not(.active) {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .pagination button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .pagination button:disabled:hover {
+            border-color: #d9d9d9;
+            color: inherit;
+        }
+
+        .pagination .page-info {
+            color: #666;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            margin: 20px auto;
+            padding: 30px;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            color: #1f1f1f;
+            font-weight: 500;
+        }
+
+        .close-button {
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .close-button:hover {
+            background-color: #f5f5f5;
+            color: #444;
+        }
+
+        /* 表单样式美化 */
+        .edit-form .form-row {
+            margin-bottom: 24px;
+        }
+
+        .edit-form .form-item {
+            position: relative;
+        }
+
+        .edit-form .form-item label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .edit-form .form-item input,
+        .edit-form .form-item select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .edit-form .form-item input:focus,
+        .edit-form .form-item select:focus {
+            border-color: #40a9ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+            outline: none;
+        }
+
+        .edit-form .form-item input::placeholder {
+            color: #bfbfbf;
+        }
+
+        .edit-form .form-actions {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .edit-form .form-actions button {
+            min-width: 100px;
+            height: 36px;
+            font-size: 14px;
+        }
+
+        .edit-form .form-actions button + button {
+            margin-left: 16px;
+        }
+
+        /* 必填标记 */
+        .edit-form .form-item label::after {
+            content: '*';
+            color: #ff4d4f;
+            margin-left: 4px;
+        }
+
+        /* 输入框hover效果 */
+        .edit-form .form-item input:hover,
+        .edit-form .form-item select:hover {
+            border-color: #40a9ff;
+        }
+
+        /* 错误状态 */
+        .edit-form .form-item input:invalid,
+        .edit-form .form-item select:invalid {
+            border-color: #ff4d4f;
+        }
+
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .data-table th {
+            background: #fafafa;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #fafafa;
+            transition: background-color 0.3s;
+        }
+
+        /* 状态标签样式 */
+        .status-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+            min-width: 64px;
+        }
+
+        /* 交易状态样式 */
+        .status-tradable {
+            background-color: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+
+        .status-trading {
+            background-color: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+        }
+
+        /* 点价状态样式 */
+        .price-status-none {
+            background-color: #fff7e6;
+            color: #fa8c16;
+            border: 1px solid #ffd591;
+        }
+
+        .price-status-partial {
+            background-color: #f0f5ff;
+            color: #597ef7;
+            border: 1px solid #adc6ff;
+        }
+
+        /* 期货合约样式 */
+        .future-contract {
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+            border-radius: 4px;
+            font-family: "Roboto Mono", monospace;
+            font-weight: 500;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .future-contract:hover {
+            background-color: #bae7ff;
+            border-color: #69c0ff;
+        }
+
+        .data-table td.contract-cell {
+            text-align: center;
+        }
+
+        .data-table td.status-cell {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 复用左侧导航 -->
+        <div class="sidebar">
+            <div class="logo">
+                <h2>钢铁点价交易系统</h2>
+            </div>
+            <nav class="nav-menu">
+                <div class="menu-group">
+                    <h3>基础后台</h3>
+                    <ul>
+                        <li><a href="listing-manage.html">挂牌管理</a></li>
+                        <li><a href="warehouse-manage.html">仓库管理</a></li>
+                        <li><a href="contract-manage.html">合同管理</a></li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <h3>客户模块</h3>
+                    <ul>
+                        <li><a href="price-trade.html">点价交易</a></li>
+                        <li><a href="trade-record.html">摘牌记录</a></li>
+                        <li><a href="my-contract.html">我的合同</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+
+        <!-- 主要内容区 -->
+        <div class="main-content">
+            <header class="top-header">
+                <div class="user-info">
+                    <span>欢迎，管理员</span>
+                    <a href="#" class="logout">退出</a>
+                </div>
+            </header>
+            <div class="content-wrapper">
+                <!-- 搜索栏 -->
+                <div class="search-bar">
+                    <form class="search-form" onsubmit="handleSearch(event)">
+                        <div class="form-group">
+                            <label>挂牌编号：</label>
+                            <input type="text" id="searchNumber" placeholder="请输入挂牌编号">
+                        </div>
+                        <div class="form-group">
+                            <label>品种：</label>
+                            <select id="searchType">
+                                <option value="">全部</option>
+                                <option value="热轧卷板">热轧卷板</option>
+                                <option value="冷轧卷板">冷轧卷板</option>
+                                <option value="镀锌板">镀锌板</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>状态：</label>
+                            <select id="searchStatus">
+                                <option value="">全部</option>
+                                <option value="可交易">可交易</option>
+                                <option value="已撤单">已撤单</option>
+                                <option value="交易中">交易中</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">搜索</button>
+                        <button type="button" class="btn" onclick="resetSearch()">重置</button>
+                    </form>
+                </div>
+
+                <!-- 表格区域 -->
+                <div class="table-section">
+                    <div class="table-header">
+                        <h2>挂牌列表</h2>
+                        <button class="btn btn-primary" onclick="openModal()">新增挂牌</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>挂牌编号</th>
+                                <th>挂牌日期</th>
+                                <th>品种</th>
+                                <th>品名</th>
+                                <th>钢种</th>
+                                <th>规格</th>
+                                <th style="text-align: center">期货合约</th>
+                                <th>数量(吨)</th>
+                                <th>期现货价差</th>
+                                <th style="text-align: center">状态</th>
+                                <th style="text-align: center">点价状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GP20240301001</td>
+                                <td>2024-03-01</td>
+                                <td>热轧卷板</td>
+                                <td>热轧板卷</td>
+                                <td>Q235B</td>
+                                <td>2000*150*1.0</td>
+                                <td class="contract-cell"><span class="future-contract">rb2405</span></td>
+                                <td>1000</td>
+                                <td>45</td>
+                                <td class="status-cell"><span class="status-tag status-tradable">可交易</span></td>
+                                <td class="status-cell"><span class="status-tag price-status-none">未点价</span></td>
+                                <td class="action-column">
+                                    <button class="btn btn-primary" onclick="location.href='listing-edit.html?id=GP20240301001'">编辑</button>
+                                    <button class="btn btn-view" onclick="location.href='listing-view.html?id=GP20240301001'">查看</button>
+                                    <button class="btn btn-danger" onclick="handleDelete('GP20240301001', this)">撤单</button>
+                                </td>
+                            </tr>
+                            <script>
+                                // 生成剩余的测试数据
+                                const futureContracts = ['rb2405', 'rb2406', 'rb2407', 'rb2408', 'rb2409'];
+                                for(let i = 2; i <= 50; i++) {
+                                    const num = i.toString().padStart(3, '0');
+                                    const contract = futureContracts[Math.floor(Math.random() * futureContracts.length)];
+                                    const status = i % 3 === 0 ? '交易中' : '可交易';
+                                    const priceStatus = i % 3 === 0 ? '部分成交' : '未点价';
+                                    const statusClass = status === '可交易' ? 'status-tradable' : 'status-trading';
+                                    const priceStatusClass = priceStatus === '未点价' ? 'price-status-none' : 'price-status-partial';
+                                    
+                                    document.write(`
+                                        <tr>
+                                            <td>GP20240301${num}</td>
+                                            <td>2024-03-01</td>
+                                            <td>${i % 2 === 0 ? '冷轧卷板' : '热轧卷板'}</td>
+                                            <td>${i % 2 === 0 ? '冷轧板卷' : '热轧板卷'}</td>
+                                            <td>${i % 2 === 0 ? 'Q355B' : 'Q235B'}</td>
+                                            <td>${2000-i}*${150-i}*0.${i}</td>
+                                            <td class="contract-cell"><span class="future-contract">${contract}</span></td>
+                                            <td>${100 + i * 10}</td>
+                                            <td>${45 + i}</td>
+                                            <td class="status-cell"><span class="status-tag ${statusClass}">${status}</span></td>
+                                            <td class="status-cell"><span class="status-tag ${priceStatusClass}">${priceStatus}</span></td>
+                                            <td class="action-column">
+                                                <button class="btn btn-primary" onclick="location.href='listing-edit.html?id=GP20240301${num}'">编辑</button>
+                                                <button class="btn btn-view" onclick="location.href='listing-view.html?id=GP20240301${num}'">查看</button>
+                                                <button class="btn btn-danger" onclick="handleDelete('GP20240301${num}', this)">撤单</button>
+                                            </td>
+                                        </tr>
+                                    `);
+                                }
+                            </script>
+                        </tbody>
+                    </table>
+                    <!-- 分页控件 -->
+                    <div class="pagination" id="pagination">
+                        <button onclick="changePage(1)">首页</button>
+                        <button onclick="changePage(currentPage-1)">&lt;</button>
+                        <!-- 页码按钮将通过 JavaScript 动态生成 -->
+                        <button onclick="changePage(currentPage+1)">&gt;</button>
+                        <button onclick="changePage(totalPages)">末页</button>
+                        <span class="page-info">共 50 条记录，每页 10 条</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 新增挂牌弹窗 -->
+    <div id="addListingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>新增挂牌</h2>
+                <span class="close-button" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="addListingForm" onsubmit="handleAddListing(event)" class="edit-form">
+                <div class="form-row">
+                    <div class="form-item">
+                        <label>品种</label>
+                        <select required>
+                            <option value="">请选择</option>
+                            <option value="热轧卷板">热轧卷板</option>
+                            <option value="冷轧卷板">冷轧卷板</option>
+                            <option value="镀锌板">镀锌板</option>
+                        </select>
+                    </div>
+                    <div class="form-item">
+                        <label>品名</label>
+                        <input type="text" required placeholder="请输入品名">
+                    </div>
+                    <div class="form-item">
+                        <label>钢种</label>
+                        <input type="text" required placeholder="请输入钢种">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-item">
+                        <label>规格</label>
+                        <input type="text" required placeholder="请输入规格">
+                    </div>
+                    <div class="form-item">
+                        <label>挂牌数量</label>
+                        <input type="number" required placeholder="请输入数量">
+                    </div>
+                    <div class="form-item">
+                        <label>期现货价差</label>
+                        <input type="number" required placeholder="请输入价差">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-item">
+                        <label>交货日期</label>
+                        <input type="date" required>
+                    </div>
+                    <div class="form-item">
+                        <label>合同保证金比例</label>
+                        <input type="number" step="0.01" required placeholder="请输入比例">
+                    </div>
+                    <div class="form-item">
+                        <label>最小交易量</label>
+                        <input type="number" required placeholder="请输入最小交易量">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-item">
+                        <label>期货合约</label>
+                        <select required>
+                            <option value="">请选择</option>
+                            <option value="rb2405">rb2405</option>
+                            <option value="rb2406">rb2406</option>
+                            <option value="rb2407">rb2407</option>
+                            <option value="rb2408">rb2408</option>
+                            <option value="rb2409">rb2409</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <button type="button" class="btn" onclick="closeModal()">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        // 分页相关函数
+        let currentPage = 1;
+        const totalPages = 5;
+        const itemsPerPage = 10;
+
+        // 页面加载时初始化
+        window.onload = function() {
+            // 生成页码按钮
+            generatePageButtons();
+            // 显示第一页数据
+            showPage(1);
+        }
+
+        // 生成页码按钮
+        function generatePageButtons() {
+            const paginationDiv = document.getElementById('pagination');
+            const nextButton = paginationDiv.querySelector('button:nth-last-child(2)');
+            
+            // 生成页码按钮
+            for(let i = 1; i <= totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.setAttribute('data-page', i);  // 添加页码属性
+                pageButton.onclick = () => changePage(i);
+                if(i === 1) pageButton.classList.add('active');
+                
+                // 将页码按钮插入到"下一页"按钮之前
+                paginationDiv.insertBefore(pageButton, nextButton);
+            }
+        }
+
+        // 显示指定页的数据
+        function showPage(page) {
+            // 确保页码在有效范围内
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+
+            const rows = document.querySelectorAll('.data-table tbody tr');
+            rows.forEach((row, index) => {
+                if (index >= (page-1) * itemsPerPage && index < page * itemsPerPage) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // 更新分页按钮状态
+            updatePaginationButtons(page);
+            
+            // 更新当前页码
+            currentPage = page;
+        }
+
+        // 更新分页按钮状态
+        function updatePaginationButtons(page) {
+            // 移除所有按钮的active类
+            document.querySelectorAll('.pagination button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 为当前页码按钮添加active类
+            const currentButton = document.querySelector(`.pagination button[data-page="${page}"]`);
+            if (currentButton) {
+                currentButton.classList.add('active');
+            }
+            
+            // 更新首页、上一页、下一页、末页按钮的状态
+            const firstPageBtn = document.querySelector('.pagination button:first-child');
+            const prevPageBtn = document.querySelector('.pagination button:nth-child(2)');
+            const nextPageBtn = document.querySelector('.pagination button:nth-last-child(2)');
+            const lastPageBtn = document.querySelector('.pagination button:last-child');
+            
+            firstPageBtn.disabled = page === 1;
+            prevPageBtn.disabled = page === 1;
+            nextPageBtn.disabled = page === totalPages;
+            lastPageBtn.disabled = page === totalPages;
+        }
+
+        function changePage(page) {
+            showPage(page);
+        }
+
+        function handleDelete(id, btn) {
+            if (confirm('确定要撤销该挂牌吗？')) {
+                // 找到并删除整行
+                const row = btn.closest('tr');
+                row.remove();
+                alert(`已撤销挂牌：${id}`);
+            }
+        }
+
+        // 搜索相关函数
+        function handleSearch(event) {
+            event.preventDefault();
+            
+            const number = document.getElementById('searchNumber').value.trim().toLowerCase();
+            const type = document.getElementById('searchType').value;
+            const status = document.getElementById('searchStatus').value;
+            
+            const rows = document.querySelectorAll('.data-table tbody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const rowNumber = row.cells[0].textContent.toLowerCase();
+                const rowType = row.cells[2].textContent;
+                const rowStatus = row.cells[8].textContent;
+                
+                const matchNumber = !number || rowNumber.includes(number);
+                const matchType = !type || rowType === type;
+                const matchStatus = !status || rowStatus === status;
+                
+                if (matchNumber && matchType && matchStatus) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // 更新分页信息
+            updatePagination(visibleCount);
+        }
+        
+        function resetSearch() {
+            // 重置搜索表单
+            document.getElementById('searchNumber').value = '';
+            document.getElementById('searchType').value = '';
+            document.getElementById('searchStatus').value = '';
+            
+            // 显示所有数据并重置分页
+            const rows = document.querySelectorAll('.data-table tbody tr');
+            rows.forEach(row => row.style.display = '');
+            showPage(1);
+            
+            // 更新分页信息
+            document.querySelector('.page-info').textContent = '共 50 条记录，每页 10 条';
+        }
+        
+        function updatePagination(visibleCount) {
+            // 更新分页信息
+            document.querySelector('.page-info').textContent = 
+                `共 ${visibleCount} 条记录，每页 10 条`;
+            
+            // 如果搜索结果少于一页，隐藏分页控件
+            const paginationDiv = document.getElementById('pagination');
+            if (visibleCount <= itemsPerPage) {
+                paginationDiv.style.display = 'none';
+            } else {
+                paginationDiv.style.display = 'flex';
+                // 重新计算总页数
+                const newTotalPages = Math.ceil(visibleCount / itemsPerPage);
+                // 更新分页按钮
+                updatePaginationButtons(1);
+            }
+        }
+
+        // 弹窗相关函数
+        function openModal() {
+            document.getElementById('addListingModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('addListingModal').style.display = 'none';
+        }
+
+        function handleAddListing(event) {
+            event.preventDefault();
+            // 获取表单数据
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            // 这里可以添加数据验证逻辑
+            
+            // 模拟保存成功
+            alert('新增挂牌成功！');
+            closeModal();
+            
+            // 重置表单
+            form.reset();
+            
+            // 刷新列表（实际项目中可能需要重新加载数据）
+            location.reload();
+        }
+
+        // 点击弹窗外部关闭弹窗
+        window.onclick = function(event) {
+            const modal = document.getElementById('addListingModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html> 
