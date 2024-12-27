@@ -187,6 +187,97 @@
             font-family: monospace;
             font-weight: 500;
         }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 50px auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            position: relative;
+            animation: modalSlideDown 0.3s ease-out;
+        }
+
+        @keyframes modalSlideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            position: absolute;
+            right: 25px;
+            top: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .trade-detail-content {
+            margin-top: 20px;
+        }
+
+        .detail-group {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 40px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .detail-group:last-child {
+            border-bottom: none;
+        }
+
+        .detail-item {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+        }
+
+        .detail-item label {
+            color: #666;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .detail-item span {
+            color: #333;
+            flex: 1;
+        }
+
+        .logo h2 a {
+            color: #fff;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .logo h2 a:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -194,7 +285,7 @@
         <!-- 左侧导航 -->
         <div class="sidebar">
             <div class="logo">
-                <h2>钢铁点价交易系统</h2>
+                <h2><a href="index.html">钢铁点价交易系统</a></h2>
             </div>
             <nav class="nav-menu">
                 <div class="menu-group">
@@ -328,6 +419,62 @@
         </div>
     </div>
 
+    <!-- 在 container div 结束前添加模态框 HTML -->
+    <div id="tradeDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>摘牌记录详情</h2>
+            <div class="trade-detail-content">
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>挂牌编号：</label>
+                        <span id="listingNo"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>摘牌时间：</label>
+                        <span id="tradeTime"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>商品类型：</label>
+                        <span id="productType"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>规格：</label>
+                        <span id="specification"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>数量：</label>
+                        <span id="quantity"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>点价金额：</label>
+                        <span id="unitPrice"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>总金额：</label>
+                        <span id="totalAmount"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>状态：</label>
+                        <span id="tradeStatus"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>备注：</label>
+                        <span id="remarks">无</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 分页相关代码
         let currentPage = 1;
@@ -446,9 +593,50 @@
 
         // 查看详情
         function viewDetail(id) {
-            alert(`查看摘牌记录详情：${id}`);
-            // 这里可以添加查看详情的逻辑
+            const modal = document.getElementById('tradeDetailModal');
+            
+            // 获取当前行的数据
+            const row = event.target.closest('tr');
+            const cells = row.cells;
+            
+            // 填充数据到模态框
+            document.getElementById('listingNo').textContent = cells[0].textContent;
+            document.getElementById('productType').textContent = cells[1].textContent;
+            document.getElementById('specification').textContent = cells[2].textContent;
+            document.getElementById('quantity').textContent = cells[3].textContent + ' 吨';
+            document.getElementById('unitPrice').textContent = cells[4].textContent + ' 元/吨';
+            document.getElementById('totalAmount').textContent = cells[5].textContent + ' 元';
+            document.getElementById('tradeTime').textContent = cells[6].textContent;
+            document.getElementById('tradeStatus').textContent = cells[7].querySelector('.status-tag').textContent;
+
+            // 显示模态框
+            modal.style.display = "block";
         }
+
+        // 添加模态框关闭事件监听
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('tradeDetailModal');
+            const closeBtn = modal.querySelector('.close');
+            
+            // 关闭按钮点击事件
+            closeBtn.onclick = function() {
+                modal.style.display = "none";
+            }
+            
+            // 点击模态框���部关闭
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+
+            // ESC键关闭
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && modal.style.display === "block") {
+                    modal.style.display = "none";
+                }
+            });
+        });
     </script>
 </body>
 </html> 

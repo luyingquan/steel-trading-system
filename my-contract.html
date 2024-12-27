@@ -214,6 +214,97 @@
             font-family: monospace;
             font-weight: 500;
         }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 50px auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            position: relative;
+            animation: modalSlideDown 0.3s ease-out;
+        }
+
+        @keyframes modalSlideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            position: absolute;
+            right: 25px;
+            top: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .contract-detail-content {
+            margin-top: 20px;
+        }
+
+        .detail-group {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 40px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .detail-group:last-child {
+            border-bottom: none;
+        }
+
+        .detail-item {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+        }
+
+        .detail-item label {
+            color: #666;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .detail-item span {
+            color: #333;
+            flex: 1;
+        }
+
+        .logo h2 a {
+            color: #fff;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .logo h2 a:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -221,7 +312,7 @@
         <!-- 左侧导航 -->
         <div class="sidebar">
             <div class="logo">
-                <h2>钢铁点价交易系统</h2>
+                <h2><a href="index.html">钢铁点价交易系统</a></h2>
             </div>
             <nav class="nav-menu">
                 <div class="menu-group">
@@ -358,6 +449,86 @@
         </div>
     </div>
 
+    <!-- 在 container div 结束前添加模态框 HTML -->
+    <div id="contractDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>合同详细信息</h2>
+            <div class="contract-detail-content">
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>合同编号：</label>
+                        <span id="contractNo"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>签订日期：</label>
+                        <span id="signDate"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>挂牌编号：</label>
+                        <span id="listingNo"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>合同状态：</label>
+                        <span id="contractStatus"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>商品信息：</label>
+                        <span id="productInfo"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>规格型号：</label>
+                        <span id="specification"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>交易数量：</label>
+                        <span id="quantity"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>单价：</label>
+                        <span id="unitPrice"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>合同总额：</label>
+                        <span id="totalAmount"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>交货方式：</label>
+                        <span id="deliveryMethod"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>交货地点：</label>
+                        <span id="deliveryLocation"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>交货期限：</label>
+                        <span id="deliveryPeriod"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>付款方式：</label>
+                        <span id="paymentMethod"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>结算方式：</label>
+                        <span id="settlementMethod"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 分页相关代码
         let currentPage = 1;
@@ -476,14 +647,63 @@
 
         // 合同操作
         function viewContract(id) {
-            alert(`查看合同：${id}`);
-            // 这里可以添加查看合同详情的逻辑
+            const modal = document.getElementById('contractDetailModal');
+            
+            // 获取当前行的数据
+            const row = event.target.closest('tr');
+            const cells = row.cells;
+            
+            // 填充数据到模态框
+            document.getElementById('contractNo').textContent = cells[0].textContent;
+            document.getElementById('productInfo').textContent = cells[1].textContent;
+            document.getElementById('specification').textContent = cells[2].textContent;
+            document.getElementById('quantity').textContent = cells[3].textContent + ' 吨';
+            document.getElementById('unitPrice').textContent = cells[4].textContent + ' 元/吨';
+            document.getElementById('totalAmount').textContent = cells[5].textContent + ' 元';
+            document.getElementById('signDate').textContent = cells[6].textContent;
+            document.getElementById('contractStatus').textContent = cells[7].querySelector('.contract-status').textContent;
+            
+            // 设置一些额外的合同信息（这些信息可以从后端获取）
+            document.getElementById('listingNo').textContent = 'GP' + id.substring(2); // 从合同编号生成挂牌编号
+            document.getElementById('deliveryMethod').textContent = '现货自提';
+            document.getElementById('deliveryLocation').textContent = '上海市宝山区钢铁大道888号';
+            document.getElementById('deliveryPeriod').textContent = '合同签订后7个工作日内';
+            document.getElementById('paymentMethod').textContent = '电汇';
+            document.getElementById('settlementMethod').textContent = '货到付款';
+
+            // 显示模态框
+            modal.style.display = "block";
         }
 
         function downloadContract(id) {
             alert(`下载合同：${id}`);
             // 这里可以添加下载合同的逻辑
         }
+
+        // 添加模态框关闭事件监听
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('contractDetailModal');
+            const closeBtn = modal.querySelector('.close');
+            
+            // 关闭按钮点击事件
+            closeBtn.onclick = function() {
+                modal.style.display = "none";
+            }
+            
+            // 点击模态框外部关闭
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+
+            // ESC键关闭
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && modal.style.display === "block") {
+                    modal.style.display = "none";
+                }
+            });
+        });
     </script>
 </body>
 </html> 

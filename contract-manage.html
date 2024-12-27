@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>合同管理 - 钢铁点价交易系统</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // 配置jsPDF以支持中文
+        window.jsPDF = window.jspdf.jsPDF;
+    </script>
     <style>
         /* 搜索栏样式优化 */
         .search-bar {
@@ -238,6 +243,91 @@
             font-family: monospace;
             font-weight: 500;
         }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 50px auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            position: relative;
+            animation: modalSlideDown 0.3s ease-out;
+        }
+
+        @keyframes modalSlideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            position: absolute;
+            right: 25px;
+            top: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .contract-detail-content {
+            margin-top: 20px;
+        }
+
+        .detail-group {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 40px;
+        }
+
+        .detail-item {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+        }
+
+        .detail-item label {
+            color: #666;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .detail-item span {
+            color: #333;
+            flex: 1;
+        }
+
+        .logo h2 a {
+            color: #fff;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .logo h2 a:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -245,7 +335,7 @@
         <!-- 复用左侧导航 -->
         <div class="sidebar">
             <div class="logo">
-                <h2>钢铁点价交易系统</h2>
+                <h2><a href="index.html">钢铁点价交易系统</a></h2>
             </div>
             <nav class="nav-menu">
                 <div class="menu-group">
@@ -388,6 +478,61 @@
         </div>
     </div>
 
+    <div id="contractDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>合同详细信息</h2>
+            <div class="contract-detail-content">
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>合同编号：</label>
+                        <span id="contractNo"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>挂牌编号：</label>
+                        <span id="listingNo"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>买方：</label>
+                        <span id="buyerName"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>卖方：</label>
+                        <span id="sellerName"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>商品信息：</label>
+                        <span id="productInfo"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>数量：</label>
+                        <span id="quantity"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>合同金额：</label>
+                        <span id="contractAmount"></span>
+                    </div>
+                    <div class="detail-item">
+                        <label>签订日期：</label>
+                        <span id="signDate"></span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-item">
+                        <label>合同状态：</label>
+                        <span id="contractStatus"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 分页相关代码
         let currentPage = 1;
@@ -503,16 +648,120 @@
             document.querySelector('.page-info').textContent = '共 70 条记录，每页 10 条';
         }
 
-        // 合同特有的功能
-        function viewContract(id) {
-            alert(`查看合同：${id}`);
-            // 这里可以添加查看合同详情的逻辑
+        // 将 viewContract 函数移到全局作用域
+        function viewContract(contractId) {
+            const modal = document.getElementById('contractDetailModal');
+            
+            // 获取当前行的数据
+            const row = event.target.closest('tr');
+            const cells = row.cells;
+            
+            // 填充数据到模态框
+            document.getElementById('contractNo').textContent = cells[0].textContent;
+            document.getElementById('listingNo').textContent = cells[1].textContent;
+            document.getElementById('buyerName').textContent = cells[2].textContent;
+            document.getElementById('sellerName').textContent = cells[3].textContent;
+            document.getElementById('productInfo').textContent = cells[4].textContent;
+            document.getElementById('quantity').textContent = cells[5].textContent + ' 吨';
+            document.getElementById('contractAmount').textContent = cells[6].textContent + ' 元';
+            document.getElementById('signDate').textContent = cells[7].textContent;
+            document.getElementById('contractStatus').textContent = cells[8].querySelector('.contract-status').textContent;
+
+            // 显示模态框
+            modal.style.display = "block";
         }
 
-        function downloadContract(id) {
-            alert(`下载合同：${id}`);
-            // 这里可以添加下载合同的逻辑
+        // 添加模态框关闭事件监听
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('contractDetailModal');
+            const closeBtn = modal.querySelector('.close');
+            
+            // 关闭按钮点击事件
+            closeBtn.onclick = function() {
+                modal.style.display = "none";
+            }
+            
+            // 点击模态框外部关闭
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+
+            // ESC键关闭
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && modal.style.display === "block") {
+                    modal.style.display = "none";
+                }
+            });
+        });
+
+        // 下载合同 PDF
+        function downloadContract(contractId) {
+            // 获取当前行的数据
+            const row = event.target.closest('tr');
+            const cells = row.cells;
+            
+            // 创建合同数据对象
+            const contractData = {
+                contractNo: cells[0].textContent,
+                listingNo: cells[1].textContent,
+                buyer: cells[2].textContent,
+                seller: cells[3].textContent,
+                product: cells[4].textContent,
+                quantity: cells[5].textContent,
+                amount: cells[6].textContent,
+                signDate: cells[7].textContent,
+                status: cells[8].querySelector('.contract-status').textContent
+            };
+
+            // 使用 jsPDF 生成 PDF
+            const doc = new jsPDF();
+            
+            // 添加标题
+            doc.setFontSize(20);
+            doc.text('钢铁交易合同', 105, 20, { align: 'center' });
+            
+            // 设置正文字体大小
+            doc.setFontSize(12);
+            
+            // 添加合同内容
+            const startY = 40;
+            const lineHeight = 10;
+            
+            doc.text(`合同编号：${contractData.contractNo}`, 20, startY);
+            doc.text(`挂牌编号：${contractData.listingNo}`, 20, startY + lineHeight);
+            doc.text(`买    方：${contractData.buyer}`, 20, startY + lineHeight * 2);
+            doc.text(`卖    方：${contractData.seller}`, 20, startY + lineHeight * 3);
+            doc.text(`商品信息：${contractData.product}`, 20, startY + lineHeight * 4);
+            doc.text(`数    量：${contractData.quantity}`, 20, startY + lineHeight * 5);
+            doc.text(`合同金额：${contractData.amount}`, 20, startY + lineHeight * 6);
+            doc.text(`签订日期：${contractData.signDate}`, 20, startY + lineHeight * 7);
+            doc.text(`合同状态：${contractData.status}`, 20, startY + lineHeight * 8);
+            
+            // 添加签章区域
+            const signY = startY + lineHeight * 10;
+            doc.text('买方签章：', 20, signY);
+            doc.text('卖方签章：', 120, signY);
+            
+            // 下载PDF
+            doc.save(`合同-${contractData.contractNo}.pdf`);
         }
+
+        // 为表格中的按钮添加事件监听
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.onclick = function() {
+                const contractId = this.dataset.id;
+                viewContract(contractId);
+            }
+        });
+
+        document.querySelectorAll('.download-btn').forEach(btn => {
+            btn.onclick = function() {
+                const contractId = this.dataset.id;
+                downloadContract(contractId);
+            }
+        });
     </script>
 </body>
 </html> 
